@@ -1,31 +1,30 @@
-import gradio as gr
+from flask import Flask, request, jsonify, render_template
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-MODEL_NAME = "Qwen/Qwen2-0.5B-Instruct"
+app = Flask(__name__)
 
 print("Cargando modelo...")
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.float32)
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-0.5B-Instruct")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-0.5B-Instruct", dtype=torch.float32)
 model.eval()
 print("Modelo listo.")
 
-LANGUAGES = ["English", "Spanish", "French", "German", "Italian", "Portuguese", "Chinese", "Japanese"]
+
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 
-def translate(text, source_lang, target_lang):
-    if not text.strip():
-        return ""
+@app.route("/translate", methods=["POST"])
+def translate():
+    data = request.json
+    text = data["text"]
+    source = data["source"]
+    target = data["target"]
 
     messages = [
-        {
-            "role": "system",
-            "content": (
-                f"You are a professional translator. "
-                f"Translate the given text from {source_lang} to {target_lang}. "
-                f"Output only the translation, nothing else."
-            ),
-        },
+        {"role": "system", "content": f"You are a translator. Translate from {source} to {target}. Output only the translation."},
         {"role": "user", "content": text},
     ]
 
@@ -33,40 +32,11 @@ def translate(text, source_lang, target_lang):
     inputs = tokenizer([prompt], return_tensors="pt")
 
     with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=200,
-            temperature=0.1,
-            do_sample=True,
-            pad_token_id=tokenizer.eos_token_id,
-        )
+        outputs = model.generate(**inputs, max_new_tokens=100, pad_token_id=tokenizer.eos_token_id)
 
-    generated_ids = outputs[0][inputs.input_ids.shape[1]:]
-    return tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+    result = tokenizer.decode(outputs[0][inputs.input_ids.shape[1]:], skip_special_tokens=True)
+    return jsonify({"translation": result.strip()})
 
-
-with gr.Blocks(title="Traductor — Qwen2-0.5B") as demo:
-    gr.Markdown("# Traductor con Qwen2-0.5B\nModelo local, sin API keys.")
-
-    with gr.Row():
-        source_lang = gr.Dropdown(choices=LANGUAGES, value="English", label="Idioma origen")
-        target_lang = gr.Dropdown(choices=LANGUAGES, value="Spanish", label="Idioma destino")
-
-    input_text = gr.Textbox(label="Texto a traducir", lines=3, placeholder="Escribe aquí...")
-    output_text = gr.Textbox(label="Traducción", lines=3, interactive=False)
-
-    translate_btn = gr.Button("Traducir", variant="primary")
-
-    gr.Examples(
-        examples=[
-            ["I like soccer", "English", "Spanish"],
-            ["How are you?", "English", "Spanish"],
-            ["What time is it?", "English", "Spanish"],
-        ],
-        inputs=[input_text, source_lang, target_lang],
-    )
-
-    translate_btn.click(fn=translate, inputs=[input_text, source_lang, target_lang], outputs=output_text)
 
 if __name__ == "__main__":
-    demo.launch()
+    app.run(debug=False)

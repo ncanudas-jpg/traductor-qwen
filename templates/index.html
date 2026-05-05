@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Traductor Qwen2</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 60px auto; padding: 0 20px; }
+    h1 { color: #333; }
+    select, textarea, button { width: 100%; padding: 10px; margin: 8px 0; font-size: 16px; box-sizing: border-box; }
+    button { background: #4A90E2; color: white; border: none; cursor: pointer; border-radius: 6px; }
+    button:hover { background: #357ABD; }
+    #result { background: #f0f0f0; padding: 15px; border-radius: 6px; min-height: 50px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Traductor con Qwen2-0.5B</h1>
+
+  <label>De:</label>
+  <select id="source">
+    <option value="English">Inglés</option>
+    <option value="Spanish">Español</option>
+    <option value="French">Francés</option>
+  </select>
+
+  <label>A:</label>
+  <select id="target">
+    <option value="Spanish">Español</option>
+    <option value="English">Inglés</option>
+    <option value="French">Francés</option>
+  </select>
+
+  <label>Texto:</label>
+  <textarea id="input" rows="4" placeholder="Escribe aquí..."></textarea>
+
+  <button onclick="traducir()">Traducir</button>
+
+  <div id="result">La traducción aparecerá aquí.</div>
+
+  <script>
+    async function traducir() {
+      const text = document.getElementById("input").value;
+      const source = document.getElementById("source").value;
+      const target = document.getElementById("target").value;
+
+      document.getElementById("result").innerText = "Traduciendo...";
+
+      const response = await fetch("/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, source, target })
+      });
+
+      const data = await response.json();
+      document.getElementById("result").innerText = data.translation;
+    }
+  </script>
+</body>
+</html>
