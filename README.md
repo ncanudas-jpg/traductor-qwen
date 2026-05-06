@@ -26,4 +26,4 @@ Abre el navegador en `http://localhost:7860`.
 
 ## Idiomas soportados
 
-English, Spanish, French, German, Italian, Portuguese, Chinese, Japanese.
+English, Spanish, French.
