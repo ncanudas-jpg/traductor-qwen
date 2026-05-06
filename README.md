@@ -1,6 +1,17 @@
+---
+title: Traductor Qwen2
+emoji: 🌐
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # Traductor con Qwen2-0.5B
 
-App de traducción que corre **completamente en local** usando el modelo [Qwen2-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2-0.5B-Instruct). No requiere API keys.
+App de traducción usando el modelo [Qwen2-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2-0.5B-Instruct). No requiere API keys. Disponible en línea en [Hugging Face Spaces](https://huggingface.co/spaces/ncanudas/traductor-qwen).
+
+![screenshot](screenshot.png)
 
 ## Instalación
 
